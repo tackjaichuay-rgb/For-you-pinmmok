@@ -116,7 +116,7 @@
             background-color: #fff;
         }
 
-        /* สไตล์กล่องครอบวิดีโอ */
+        /* สไตล์กล่องครอบวิดีโอ YouTube iframe */
         .video-wrapper {
             position: relative;
             padding-bottom: 56.25%; /* อัตราส่วน 16:9 */
@@ -127,12 +127,13 @@
             margin: 25px 0;
         }
 
-        .video-wrapper video {
+        .video-wrapper iframe {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            border: 0;
             background: #000;
         }
 
@@ -177,10 +178,7 @@
             <div id="page4" class="page">
                 <h1>อยากทำให้กดเปิดเสียงในคลิปด้วย</h1>
                 <div class="video-wrapper">
-                    <video id="memoryVideo" controls>
-                        <source src="https://docs.google.com/uc?export=download&id=1iKBBAxrCEH8zF5KExUa_6095pkABXw3U" type="video/mp4">
-                        เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอ
-                    </video>
+                    <div id="player"></div>
                 </div>
                 <p style="font-style: italic; color: #888;">กดเปิดเสียงในวิดีโอเพื่อความรู้สึกที่ชัดเจนขึ้นนะ</p>
                 <button class="btn" type="button" onclick="nextPage(5)">อ่านข้อความถัดไป</button>
@@ -225,9 +223,41 @@
         <source src="song.mp3" type="audio/mpeg">
     </audio>
 
+    <script src="https://www.youtube.com/iframe_api"></script>
+
     <script>
+        var player;
+        var music = document.getElementById("bgMusic");
+
+        // ฟังก์ชันสร้างเครื่องเล่น YouTube อัตโนมัติ
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                videoId: 'uAVbY9Btegc', // รหัสคลิปวิดีโอของคุณ
+                playerVars: {
+                    'playsinline': 1,
+                    'modestbranding': 1,
+                    'rel': 0
+                },
+                events: {
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        // ฟังก์ชันตรวจเช็กการกดเล่นวิดีโอ เพื่อหรี่/เปิดเพลงแบคกราวด์อัตโนมัติ
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.PLAYING) {
+                // เมื่อเก่งกดเปิดคลิปเล่น -> ให้เพลงแบคกราวด์ดับทันที
+                music.volume = 0;
+            } else if (event.data == YT.PlayerState.PAUSED || event.data == YT.PlayerState.ENDED) {
+                // ถ้ากดหยุด หรือคลิปจบ -> ให้เพลงแบคกราวด์กลับมาดัง
+                music.volume = 0.3;
+            }
+        }
+
         function startStory() {
-            var music = document.getElementById("bgMusic");
             music.volume = 0.3; // ระดับเสียงปกติ 30%
             music.play().catch(function(error) {
                 console.log("Audio play blocked");
@@ -243,27 +273,17 @@
 
             document.getElementById('page' + pageNumber).classList.add('active');
             
-            // เมื่อออกจากหน้าวิดีโอ (หน้า 5 ขึ้นไป) ปรับเพลงให้ดัง 30% เท่าเดิม
+            // เมื่อย้ายออกจากหน้าวิดีโอ (หน้า 5 ขึ้นไป) ปรับเพลงให้ดังปกติ และสั่งหยุดคลิป YouTube
             if (pageNumber >= 5) {
-                var music = document.getElementById("bgMusic");
                 music.volume = 0.3;
+                if (player && typeof player.pauseVideo === 'function') {
+                    player.pauseVideo();
+                }
             }
         }
 
         function showVideoPage() {
             nextPage(4);
-
-            var video = document.getElementById("memoryVideo");
-            var music = document.getElementById("bgMusic");
-            
-            // เมื่อกดเล่นวิดีโอ ให้เพลงเบื้องหลังเหลือ 0 ทันที
-            video.onplay = function() {
-                music.volume = 0; 
-            };
-            // ถ้ากดหยุดวิดีโอชั่วคราว ให้เพลงกลับมาคลอดังเดิม
-            video.onpause = function() {
-                music.volume = 0.3;
-            };
         }
 
         function submitData() {
