@@ -178,7 +178,7 @@
                 <h1>อยากทำให้กดเปิดเสียงในคลิปด้วย</h1>
                 <div class="video-wrapper">
                     <video id="memoryVideo" controls>
-                        <source src="https://drive.google.com/file/d/1iKBBAxrCEH8zF5KExUa_6095pkABXw3U/view?usp=sharing" type="video/mp4">
+                        <source src="https://docs.google.com/uc?export=download&id=1iKBBAxrCEH8zF5KExUa_6095pkABXw3U" type="video/mp4">
                         เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอ
                     </video>
                 </div>
@@ -226,18 +226,15 @@
     </audio>
 
     <script>
-        // ฟังก์ชันเริ่มเล่นเนื้อหาเว็บ และเปิดเพลงคลอเบาๆ
         function startStory() {
             var music = document.getElementById("bgMusic");
             music.volume = 0.3; // ระดับเสียงปกติ 30%
             music.play().catch(function(error) {
-                console.log("Audio play blocked by browser setup");
+                console.log("Audio play blocked");
             });
-
             nextPage(2);
         }
 
-        // ฟังก์ชันสลับหน้าทั่วไป
         function nextPage(pageNumber) {
             var pages = document.querySelectorAll('.page');
             pages.forEach(function(p) {
@@ -246,42 +243,39 @@
 
             document.getElementById('page' + pageNumber).classList.add('active');
             
-            // เมื่อกดออกจากหน้าวิดีโอ (ไปหน้า 5 เป็นต้นไป) ให้ปรับเพลงแบคกราวด์กลับมาดังเท่าเดิม
+            // เมื่อออกจากหน้าวิดีโอ (หน้า 5 ขึ้นไป) ปรับเพลงให้ดัง 30% เท่าเดิม
             if (pageNumber >= 5) {
                 var music = document.getElementById("bgMusic");
-                music.volume = 0.3; // กลับมาดัง 30% เท่าเดิม
+                music.volume = 0.3;
             }
         }
 
-        // ฟังก์ชันเปิดหน้าคลิปวิดีโอ (หรี่เพลงแบคกราวด์เป็น 0)
         function showVideoPage() {
             nextPage(4);
 
             var video = document.getElementById("memoryVideo");
             var music = document.getElementById("bgMusic");
             
+            // เมื่อกดเล่นวิดีโอ ให้เพลงเบื้องหลังเหลือ 0 ทันที
             video.onplay = function() {
                 music.volume = 0; 
             };
+            // ถ้ากดหยุดวิดีโอชั่วคราว ให้เพลงกลับมาคลอดังเดิม
             video.onpause = function() {
                 music.volume = 0.3;
             };
         }
 
-        // ฟังก์ชันส่งข้อมูลแบบพิเศษ (AJAX) ทำให้หน้าสุดท้ายไม่หายไป
         function submitData() {
             var form = document.getElementById('storyForm');
             var btn = document.getElementById('submitBtn');
             var loading = document.getElementById('loadingText');
             
-            // แสดงสถานะกำลังส่งข้อมูล และล็อกปุ่มไม่ให้กดซ้ำ
             btn.disabled = true;
             loading.style.display = 'block';
 
-            // รวบรวมข้อมูลในกล่องข้อความทั้งหมด
             var formData = new FormData(form);
 
-            // ส่งข้อมูลไปที่ Formspree ข้างหลังบ้าน
             fetch('https://formspree.io/f/mojzebpj', {
                 method: 'POST',
                 body: formData,
@@ -290,11 +284,9 @@
                 }
             })
             .then(function(response) {
-                // ไม่ว่าจะส่งสำเร็จหรืออินเทอร์เน็ตหลุด ให้สลับไปหน้าจบ (หน้า 8) เสมอ แฟนจะได้เห็นคำขอบคุณ
                 nextPage(8);
             })
             .catch(function(error) {
-                // กรณีเกิดข้อผิดพลาด ก็ให้เคลียร์ไปหน้าจบเช่นกันเพื่ออารมณ์ที่ต่อเนื่องของแฟน
                 nextPage(8);
             });
         }
